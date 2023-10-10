@@ -1,11 +1,14 @@
+const keep_alive = require("./keep_alive.js");
 const Revolt = require("revolt.js");
-const { token, prefix } = require('./config.json');
 const { readFileSync, writeFileSync } = require("fs")
 
 let client = new Revolt.Client();
 exports.client = client;
 let data = require("./data.json");
 const { GrapeInfo, CommandError } = require("./functions.js");
+
+const token = process.env['BOT_TOKEN']
+const prefix = "g!"
 
 client.on("ready", async () => {
 	console.info(`Logged in as ${client.user.username}!`);
