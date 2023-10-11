@@ -61,14 +61,14 @@ client.on("messageCreate", async (message) => {
 						return
 					}
 				})
-				if (!args[1]) {
+				if (args[0] != "universal_reactions" && !args[1]) {
 					CommandError("missingArgument", message,
 						`**Correct Usage**
 						${prefix}channel ${args[0]} <channel>`)
 					return
 				}
 				let channel = args[1].slice(2, -1)
-				if (!message.server.channelIds.has(channel)) {
+				if (args[0] != "universal_reactions" && !message.server.channelIds.has(channel)) {
 					CommandError("invalidArgument", message,
 						`**Correct Usage**
 						${prefix}channel ${args[0]} <channel mention>`)
