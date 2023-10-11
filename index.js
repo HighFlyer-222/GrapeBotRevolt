@@ -18,12 +18,12 @@ client.on("ready", async () => {
 client.on("messageCreate", async (message) => {
 	if (message.author.id == client.id) return
 	data = JSON.parse(readFileSync("./data.json"))
-	let channelList = data.channelConfig[message.channel.server.id.toString()]
+	let channelList = data.serverConfig[message.channel.server.id.toString()].channels
 	if (channelList == undefined) {
-		data.channelConfig[message.channel.server.id.toString()] = []
+		data.serverConfig[message.channel.server.id.toString()].channels = []
 		channelList = []
 	}
-	if (message.content && message.content.startsWith(prefix)) {
+	if (message.content && message.content.startsWith(prefix) && data.grapeData[message.author.id].balance > 0) {
 		const args = message.content.slice(prefix.length).trim().split(/ +/)
 		const command = args.shift().toLowerCase()
 		if (command == "help") {
@@ -35,25 +35,26 @@ client.on("messageCreate", async (message) => {
 				\`${prefix}grape\` - See your current :grapes: count
 				\`${prefix}channel\` - See the channels where the :grapes: economy is active
 				\`${prefix}channel add <channel>\` - Activate the :grapes: economy in a channel
-				\`${prefix}channel remove <channel>\` - Disable the :grapes: economy in a channel`
+				\`${prefix}channel remove <channel>\` - Disable the :grapes: economy in a channel
+				\'${prefix}channel universal_reactions  - When off, only reactions in :grapes: channels will affect the :grapes: economy. When on, any reaction will count.`
 			helpEmbed.colour = "#9266cc"
 			message.reply({ embeds: [helpEmbed] })
 		}
 		else if (command == "grape") {
 			const balanceEmbed = new Revolt.MessageEmbed(type = "Text")
 			balanceEmbed.colour = "#9266cc";
-			if (!(message.author.id in data.grapeBalance)) {
+			if (!(message.author.id in data.grapeData)) {
 				balanceEmbed.title = "No Grapes?"
 				balanceEmbed.description = "You don't have any :grapes: because you haven't joined the :grapes: economy!\nSend a message in a :grapes: channel (type `g!channel` to find some) to get started!"
 			}
 			else {
 				balanceEmbed.title = `${message.author.username}'s balance`
-				balanceEmbed.description = `${data.grapeBalance[message.author.id]} :grapes:`
+				balanceEmbed.description = `${data.grapeData[message.author.id].balance} :grapes:`
 			}
 			message.reply({ embeds: [balanceEmbed] })
 		}
 		else if (command == "channel") {
-			if (args[0] == "add" || args[0] == "remove") {
+			if (args[0] == "add" || args[0] == "remove" || args[0] == "universal_reactions") {
 				message.channel.server.fetchMember(message.author).then(member => {
 					if (!member.hasPermission(message.channel.server, "ManageChannel")) {
 						CommandError("missingPermission", message, "You must have the `Manage Channels` permission to use this command.")
@@ -90,6 +91,10 @@ client.on("messageCreate", async (message) => {
 						channelList.splice(channelList.indexOf(channel), 1)
 						message.reply(`The :grapes: economy has been disabled in ${args[1]}!`)
 						break
+					case "universal_reactions":
+						data.serverConfig[message.channel.server.id.toString()].universal_reactions = !(data.serverConfig[message.channel.server.id.toString()].universal_reactions)
+						message.reply(`Universal reactions are now **${data.serverConfig[message.channel.server.id.toString()].universal_reactions ? "on" : "off"}**.`)
+						break
 				}
 			}
 			else {
@@ -111,35 +116,42 @@ client.on("messageCreate", async (message) => {
 			writeFileSync("./data.json", JSON.stringify(data))
 		}
 	}
-	else if (channelList.includes(message.channel.id) && message.content) {
-		if (!(message.author.id in data.grapeBalance)) {
+	if (channelList.includes(message.channel.id) && message.content) {
+		if (!(message.author.id in data.grapeData)) {
 			GrapeInfo(message, "start", message.author, 10)
 		}
-		else if (data.grapeBalance[message.author.id] <= 0 && message.content != ".") {
-			GrapeInfo(message, "noGrapes", message.author, 0)
+		else if (data.grapeData[message.author.id].balance <= 0 && message.content != ".") {
+			GrapeInfo(message, "noGrapes", message.author, 0, "", 3000)
 		}
 		else if (message.attachments) {
-			GrapeInfo(message, "loseGrape", message.author, 2, "attachment")
+			GrapeInfo(message, "loseGrape", message.author, 2, "attachment", 2000)
 		}
 		else {
-			GrapeInfo(message, "loseGrape", message.author, 1, "message")
+			GrapeInfo(message, "loseGrape", message.author, 1, "message", 1000)
 		}
 	}
 });
 
 client.on("messageReactionAdd", async (message, reacterId, emoji) => {
 	client.users.fetch(reacterId).then(reacter => {
-		if (emoji == "🥗") GrapeInfo(message, "loseGrape", reacter, 1, "salad", reacter);
 		if (message.author == reacter) return;
 		switch (emoji) {
 			case "🍇":
-				GrapeInfo(message, "gainGrape", message.author, 1, "grape", reacter);
+				GrapeInfo(message, "gainGrape", message.author, 1, "grape", 4000, reacter);
 				break
 			case "🫒":
-				GrapeInfo(message, "gainGrape", message.author, 0.5, "olive", reacter);
+				GrapeInfo(message, "gainGrape", message.author, 0.5, "olive", 4000, reacter);
 				break
 			case "🐟":
-				GrapeInfo(message, "loseGrape", message.author, 1, "fish", reacter);
+				GrapeInfo(message, "loseGrape", message.author, 1, "fish", 4000, reacter);
+				break
+			case "🥗":
+				if (Math.random() < 0.5) {
+					GrapeInfo(message, "stealGrape", reacter, 1, "", 4000, message.author);
+				}
+				else {
+					GrapeInfo(message, "loseGrape", reacter, 5, "steal", 4000, message.author);
+				}
 				break
 		}
 	})
