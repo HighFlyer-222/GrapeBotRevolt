@@ -18,11 +18,15 @@ client.on("ready", async () => {
 client.on("messageCreate", async (message) => {
 	if (message.author.id == client.id) return
 	data = JSON.parse(readFileSync("./data.json"))
+	if (!(message.channel.server.id.toString() in data.serverConfig)) {
+		data.serverConfig[message.channel.server.id.toString()] = {}
+	}
 	let channelList = data.serverConfig[message.channel.server.id.toString()].channels
 	if (channelList == undefined) {
 		data.serverConfig[message.channel.server.id.toString()].channels = []
 		channelList = []
 	}
+	writeFileSync("./data.json", JSON.stringify(data))
 	if (channelList.includes(message.channel.id) && message.content) {
 		if (!(message.author.id in data.grapeData)) {
 			GrapeInfo(message, "start", message.author, 10)
@@ -69,6 +73,16 @@ client.on("messageCreate", async (message) => {
 			message.reply({ embeds: [balanceEmbed] })
 		}
 		else if (command == "channel") {
+			if (args[0] == "universal_reactions") {
+				message.channel.server.fetchMember(message.author).then(member => {
+					if (!member.hasPermission(message.channel.server, "ManageChannel")) {
+						CommandError("missingPermission", message, "You must have the `Manage Channels` permission to use this command.")
+						return
+					}
+				})
+				data.serverConfig[message.channel.server.id.toString()].universal_reactions = !(data.serverConfig[message.channel.server.id.toString()].universal_reactions)
+				message.reply(`Universal reactions are now **${data.serverConfig[message.channel.server.id.toString()].universal_reactions ? "on" : "off"}**.`)
+			}
 			if (args[0] == "add" || args[0] == "remove" || args[0] == "universal_reactions") {
 				message.channel.server.fetchMember(message.author).then(member => {
 					if (!member.hasPermission(message.channel.server, "ManageChannel")) {
@@ -76,20 +90,18 @@ client.on("messageCreate", async (message) => {
 						return
 					}
 				})
-				if (args[0] != "universal_reactions") {
-					if (!args[1]) {
-						CommandError("missingArgument", message,
-							`**Correct Usage**
-							${prefix}channel ${args[0]} <channel>`)
-						return
-					}
-					let channel = args[1].slice(2, -1)
-					if (!message.server.channelIds.has(channel)) {
-						CommandError("invalidArgument", message,
-							`**Correct Usage**
-							${prefix}channel ${args[0]} <channel mention>`)
-						return
-					}
+				if (!args[1]) {
+					CommandError("missingArgument", message,
+						`**Correct Usage**
+						${prefix}channel ${args[0]} <channel>`)
+					return
+				}
+				let channel = args[1].slice(2, -1)
+				if (!message.server.channelIds.has(channel)) {
+					CommandError("invalidArgument", message,
+						`**Correct Usage**
+						${prefix}channel ${args[0]} <channel mention>`)
+					return
 				}
 				switch (args[0]) {
 					case "add":
@@ -98,6 +110,7 @@ client.on("messageCreate", async (message) => {
 							return
 						}
 						channelList.push(channel)
+						data.serverConfig[message.channel.server.id.toString()].channels.push(channel)
 						message.reply(`The :grapes: economy is now active in ${args[1]}!`)
 						break
 					case "remove":
@@ -106,11 +119,8 @@ client.on("messageCreate", async (message) => {
 							return
 						}
 						channelList.splice(channelList.indexOf(channel), 1)
+						data.serverConfig[message.channel.server.id.toString()].splice(channelList.indexOf(channel), 1)
 						message.reply(`The :grapes: economy has been disabled in ${args[1]}!`)
-						break
-					case "universal_reactions":
-						data.serverConfig[message.channel.server.id.toString()].universal_reactions = !(data.serverConfig[message.channel.server.id.toString()].universal_reactions)
-						message.reply(`Universal reactions are now **${data.serverConfig[message.channel.server.id.toString()].universal_reactions ? "on" : "off"}**.`)
 						break
 				}
 			}

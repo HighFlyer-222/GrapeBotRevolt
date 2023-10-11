@@ -6,6 +6,8 @@ const { client } = require("./index");
 
 async function GrapeInfo(message, infoType, user1, amount, reason = "", delay = 0, user2 = undefined) {
 	data = JSON.parse(readFileSync("./data.json"))
+	if (user1 && !(user1.id in data.grapeData)) data.grapeData[user1.id] = {}
+	if (user2 && !(user2.id in data.grapeData)) data.grapeData[user2.id] = {}
 	const grapeEmbed = new Revolt.MessageEmbed(type = "Text");
 	grapeEmbed.title = "Grape Info";
 	switch (infoType) {
