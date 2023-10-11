@@ -133,7 +133,7 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on("messageReactionAdd", async (message, reacterId, emoji) => {
-	if (message.author.id == client.id) return
+	if (!(message.author.id in data.grapeData)) return
 	client.users.fetch(reacterId).then(reacter => {
 		if (message.author == reacter) return;
 		switch (emoji) {
@@ -147,6 +147,7 @@ client.on("messageReactionAdd", async (message, reacterId, emoji) => {
 				GrapeInfo(message, "loseGrape", message.author, 1, "fish", 4000, reacter);
 				break
 			case "🥗":
+				if (data.grapeData[message.author.id].balance < 1) return
 				if (Math.random() < 0.5) {
 					GrapeInfo(message, "stealGrape", reacter, 1, "", 4000, message.author);
 				}
