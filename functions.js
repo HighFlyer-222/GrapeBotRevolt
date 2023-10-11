@@ -27,7 +27,7 @@ async function GrapeInfo(message, infoType, user1, amount, reason = "", delay = 
 			data.grapeData[user2.id].balance -= amount;
 			break;
 		case "noGrapes":
-			grapeEmbed.description = `**${user1.username}**, you can't send any messages! You have **${data.grapeData[user1.id].balance}** :grapes:!`;
+			grapeEmbed.description = `**${user1.username}**, you can't send or edit any messages! You have **${data.grapeData[user1.id].balance}** :grapes:!`;
 			data.grapeData[user1.id].balance -= amount;
 			break;
 		default:
@@ -40,6 +40,9 @@ async function GrapeInfo(message, infoType, user1, amount, reason = "", delay = 
 			break;
 		case "attachment":
 			grapeEmbed.description += " for sending a message with an attachment";
+			break;
+		case "edit":
+			grapeEmbed.description += " for editing a message";
 			break;
 		case "grape":
 			grapeEmbed.description += ` thanks to a :grapes: reaction by ${user2.username}`;

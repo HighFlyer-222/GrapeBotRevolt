@@ -129,8 +129,19 @@ client.on("messageCreate", async (message) => {
 			GrapeInfo(message, "loseGrape", message.author, 2, "attachment", 2000)
 		}
 		else {
-			GrapeInfo(message, "loseGrape", message.author, 1, "message", 1000)
+			GrapeInfo(message, "loseGrape", message.author, 1, "message", 1500)
 		}
+	}
+});
+
+client.on("messageUpdate", async (message, oldMessage) => {
+	if (message.content == oldMessage.content) return
+	if (!(channelList.includes(message.channel.id))) return
+	if (data.grapeData[message.author.id].balance <= 0 && message.content != ".") {
+		GrapeInfo(message, "noGrapes", message.author, 0, "", 3000)
+	}
+	else {
+		GrapeInfo(message, "loseGrape", message.author, 1, "edit", 2000)
 	}
 });
 
