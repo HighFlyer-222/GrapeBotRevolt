@@ -23,6 +23,21 @@ client.on("messageCreate", async (message) => {
 		data.serverConfig[message.channel.server.id.toString()].channels = []
 		channelList = []
 	}
+	if (channelList.includes(message.channel.id) && message.content) {
+		if (!(message.author.id in data.grapeData)) {
+			GrapeInfo(message, "start", message.author, 10)
+		}
+		else if (data.grapeData[message.author.id].balance <= 0) {
+			if (message.content != ".") GrapeInfo(message, "noGrapes", message.author, 0, "", 3000)
+		}
+		else if (message.attachments) {
+			GrapeInfo(message, "loseGrape", message.author, 2, "attachment", 2000)
+		}
+		else {
+			GrapeInfo(message, "loseGrape", message.author, 1, "message", 1500)
+		}
+	}
+	data = JSON.parse(readFileSync("./data.json"))
 	if (message.content && message.content.startsWith(prefix) && data.grapeData[message.author.id].balance > 0) {
 		const args = message.content.slice(prefix.length).trim().split(/ +/)
 		const command = args.shift().toLowerCase()
@@ -118,20 +133,6 @@ client.on("messageCreate", async (message) => {
 			writeFileSync("./data.json", JSON.stringify(data))
 		}
 	}
-	if (channelList.includes(message.channel.id) && message.content) {
-		if (!(message.author.id in data.grapeData)) {
-			GrapeInfo(message, "start", message.author, 10)
-		}
-		else if (data.grapeData[message.author.id].balance <= 0 && message.content != ".") {
-			GrapeInfo(message, "noGrapes", message.author, 0, "", 3000)
-		}
-		else if (message.attachments) {
-			GrapeInfo(message, "loseGrape", message.author, 2, "attachment", 2000)
-		}
-		else {
-			GrapeInfo(message, "loseGrape", message.author, 1, "message", 1500)
-		}
-	}
 });
 
 client.on("messageUpdate", async (message, oldMessage) => {
@@ -144,8 +145,8 @@ client.on("messageUpdate", async (message, oldMessage) => {
 	}
 	if (message.content == oldMessage.content) return
 	if (!(channelList.includes(message.channel.id))) return
-	if (data.grapeData[message.author.id].balance <= 0 && message.content != ".") {
-		GrapeInfo(message, "noGrapes", message.author, 0, "", 3000)
+	if (data.grapeData[message.author.id].balance <= 0) {
+		if (message.content != ".") GrapeInfo(message, "noGrapes", message.author, 0, "", 3000)
 	}
 	else {
 		GrapeInfo(message, "loseGrape", message.author, 1, "edit", 2000)

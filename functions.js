@@ -61,15 +61,22 @@ async function GrapeInfo(message, infoType, user1, amount, reason = "", delay = 
 	if (infoType == "stealGrape") grapeEmbed.description += `\n**${user2.username}** now has **${data.grapeData[user2.id].balance}** :grapes:`;
 	grapeEmbed.colour = "#9266cc";
 	if (infoType == "noGrapes") {
-		message.channel.sendMessage({ embeds: [grapeEmbed] })
-		message.delete()
+		message.channel.sendMessage({ embeds: [grapeEmbed] }).then(async (msg) => {
+			message.delete()
+			if (delay != 0) {
+				await setTimeout(delay);
+				msg.delete();
+			}
+		});
 	}
-	message.reply({ embeds: [grapeEmbed] }, false).then(async (msg) => {
-		if (delay != 0) {
-			await setTimeout(delay);
-			msg.delete();
-		}
-	});
+	else {
+		message.reply({ embeds: [grapeEmbed] }, false).then(async (msg) => {
+			if (delay != 0) {
+				await setTimeout(delay);
+				msg.delete();
+			}
+		});
+	}
 	writeFileSync("./data.json", JSON.stringify(data))
 }
 exports.GrapeInfo = GrapeInfo;
