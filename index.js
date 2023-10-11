@@ -134,6 +134,7 @@ client.on("messageCreate", async (message) => {
 
 client.on("messageReactionAdd", async (message, reacterId, emoji) => {
 	if (!(message.author.id in data.grapeData)) return
+	if (!(data.serverConfig[message.channel.server.id.toString()].universal_reactions) && !(channelList.includes(message.channel.id))) return
 	client.users.fetch(reacterId).then(reacter => {
 		if (message.author == reacter) return;
 		switch (emoji) {
