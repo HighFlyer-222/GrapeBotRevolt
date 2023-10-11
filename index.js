@@ -135,6 +135,13 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on("messageUpdate", async (message, oldMessage) => {
+	if (message.author.id == client.id) return
+	data = JSON.parse(readFileSync("./data.json"))
+	let channelList = data.serverConfig[message.channel.server.id.toString()].channels
+	if (channelList == undefined) {
+		data.serverConfig[message.channel.server.id.toString()].channels = []
+		channelList = []
+	}
 	if (message.content == oldMessage.content) return
 	if (!(channelList.includes(message.channel.id))) return
 	if (data.grapeData[message.author.id].balance <= 0 && message.content != ".") {
