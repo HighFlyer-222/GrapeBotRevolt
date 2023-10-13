@@ -64,7 +64,13 @@ async function GrapeInfo(message, infoType, user1, amount, reason = "", delay = 
 	grapeEmbed.colour = "#9266cc";
 	if (infoType == "noGrapes") {
 		message.channel.sendMessage({ embeds: [grapeEmbed] }).then(async (msg) => {
-			message.delete()
+			message.channel.server.fetchMember(client.user.id).then(member => {
+				if (!member.hasPermission(message.channel.server, "ManageMessages")) {
+					message.channel.sendMessage("I am missing the `Manage Messages` permission. This is required for me to delete messages from people with no :grapes:!")
+				} else {
+					message.delete()
+				}
+			})
 			if (delay != 0) {
 				await setTimeout(delay);
 				msg.delete();
