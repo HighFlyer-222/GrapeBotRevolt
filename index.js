@@ -16,7 +16,7 @@ client.on("ready", async () => {
 });
 
 client.on("messageCreate", async (message) => {
-	if (message.author.id == client.id) return
+	if (message.author.id == client.user.id) return
 	data = JSON.parse(readFileSync("./data.json"))
 	if (!(message.channel.server.id.toString() in data.serverConfig)) {
 		data.serverConfig[message.channel.server.id.toString()] = {}
@@ -27,7 +27,7 @@ client.on("messageCreate", async (message) => {
 		channelList = []
 	}
 	writeFileSync("./data.json", JSON.stringify(data))
-	if (channelList.includes(message.channel.id) && message.content) {
+	if (channelList.includes(message.channel.id)) {
 		if (!(message.author.id in data.grapeData)) {
 			GrapeInfo(message, "start", message.author, 10)
 		}
