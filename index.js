@@ -165,6 +165,16 @@ client.on("messageUpdate", async (message, oldMessage) => {
 
 client.on("messageReactionAdd", async (message, reacterId, emoji) => {
 	if (!(message.author.id in data.grapeData)) return
+	if (message.author.id == client.user.id) return
+	data = JSON.parse(readFileSync("./data.json"))
+	if (!(message.channel.server.id.toString() in data.serverConfig)) {
+		data.serverConfig[message.channel.server.id.toString()] = {}
+	}
+	let channelList = data.serverConfig[message.channel.server.id.toString()].channels
+	if (channelList == undefined) {
+		data.serverConfig[message.channel.server.id.toString()].channels = []
+		channelList = []
+	}
 	if (!(data.serverConfig[message.channel.server.id.toString()].universal_reactions) && !(channelList.includes(message.channel.id))) return
 	client.users.fetch(reacterId).then(reacter => {
 		if (message.author == reacter) return;
